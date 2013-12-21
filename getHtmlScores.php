@@ -48,6 +48,7 @@ for ($i = 0; $i < $count; $i++) {
 	}
    $away_score = (int)$matches[4][$i];
    $home_score = (int)$matches[7][$i];
+   $total_score = $away_score + $home_score;
 
    $winner = ($away_score > $home_score) ? $away_team : $home_team;
    $gameID = getGameIDByTeamID($week, $home_team);
@@ -59,6 +60,7 @@ for ($i = 0; $i < $count; $i++) {
 	      	'visitorScore' => $away_score,
 	      	'hometeam' => $home_team,
 	      	'homeScore' => $home_score,
+	      	'totalScore' => $total_score,
 	      	'overtime' => $overtime,
 	      	'winner' => $winner
 	   	);

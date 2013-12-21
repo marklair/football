@@ -11,10 +11,14 @@ if ($_POST['action'] == 'Update') {
 		$homeScore = ((strlen($game['homeScore']) > 0) ? $game['homeScore'] : 'NULL');
 		$visitorScore = ((strlen($game['visitorScore']) > 0) ? $game['visitorScore'] : 'NULL');
 		$overtime = ((!empty($game['OT'])) ? '1' : '0');
+		$is_tiebreaker = ((!empty($game['tieBreak'])) ? '1' : '0');
+		$totalPoints = $homeScore + $visitorScore;
 		$sql = "update " . $db_prefix . "schedule ";
-		$sql .= "set homeScore = " . $homeScore . ", visitorScore = " . $visitorScore . ", overtime = " . $overtime . " ";
-		$sql .= "where gameID = " . $game['gameID'];
+		$sql .= "set homeScore = " . $homeScore . ", visitorScore = " . $visitorScore . ", overtime = " . $overtime . ", total_points = " . $totalPoints;
+		$sql .= ", is_tiebreaker = " . $is_tiebreaker;
+		$sql .= " where gameID = " . $game['gameID'] . "; ";
 		mysql_query($sql) or die('Error updating score: ' . mysql_error());
+		//echo $sql;	
 	}
 	header('Location: index.php');
 }
@@ -81,11 +85,12 @@ $sql .= "order by gameTimeEastern";
 $query = mysql_query($sql);
 if (mysql_num_rows($query) > 0) {
 	echo '<table cellpadding="4" cellspacing="0" class="table1">' . "\n";
-	echo '	<tr><th colspan="6" align="left">Week ' . $week . '</th></tr>' . "\n";
+	echo '	<tr><th colspan="8" align="left">Week ' . $week . '</th></tr>' . "\n";
 	$i = 0;
 	while ($result = mysql_fetch_array($query)) {
 		$homeTeam = new team($result['homeID']);
 		$visitorTeam = new team($result['visitorID']);
+		$totalScore = $result['homeScore'] + $result['visitorScore'];
 		$rowclass = (($i % 2 == 0) ? ' class="altrow"' : '');
 		echo '		<tr' . $rowclass . '>' . "\n";
 		echo '			<td><input type="hidden" name="game[' . $result['gameID'] . '][gameID]" value="' . $result['gameID'] . '" />' . date('D n/j g:i a', strtotime($result['gameTimeEastern'])) . ' ET</td>' . "\n";
@@ -94,6 +99,9 @@ if (mysql_num_rows($query) > 0) {
 		echo '			<td align="right"><input type="hidden" name="gameID[' . strtolower($homeTeam->team) . ']" value="' . $result['gameID'] . '" />at ' . $homeTeam->teamName . '</td>' . "\n";
 		echo '			<td><input type="text" name="game[' . $result['gameID'] . '][homeScore]" id="game[' . $result['gameID'] . '][homeScore]" value="' . $result['homeScore'] . '" size="3" /></td>' . "\n";
 		echo '			<td>OT <input type="checkbox" name="game[' . $result['gameID'] . '][OT]" id="game[' . $result['gameID'] . '][OT]" value="1"' . (($result['overtime']) ? ' checked="checked"' : '') . '" /></td>' . "\n";
+		echo '			<td>TotalPoints: <input type="text" name="game[' . $result['gameID'] . '][totalScore]" id="game[' . $result['gameID'] . '][totalScore]" value="' . $totalScore . '" size="3" /></td>' . "\n";
+		echo '			<td>Tiebreaker: <input type="checkbox" name="game[' . $result['gameID'] . '][tieBreak]" id="game[' . $result['gameID'] . '][tieBreak]" value="1"' . (($result['overtime']) ? ' checked="checked"' : '') . '" /></td>' . "\n";
+
 		echo '		</tr>' . "\n";
 		$i++;
 	}
