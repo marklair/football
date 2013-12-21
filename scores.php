@@ -100,7 +100,7 @@ if (mysql_num_rows($query) > 0) {
 		echo '			<td><input type="text" name="game[' . $result['gameID'] . '][homeScore]" id="game[' . $result['gameID'] . '][homeScore]" value="' . $result['homeScore'] . '" size="3" /></td>' . "\n";
 		echo '			<td>OT <input type="checkbox" name="game[' . $result['gameID'] . '][OT]" id="game[' . $result['gameID'] . '][OT]" value="1"' . (($result['overtime']) ? ' checked="checked"' : '') . '" /></td>' . "\n";
 		echo '			<td>TotalPoints: <input type="text" name="game[' . $result['gameID'] . '][totalScore]" id="game[' . $result['gameID'] . '][totalScore]" value="' . $totalScore . '" size="3" /></td>' . "\n";
-		echo '			<td>Tiebreaker: <input type="checkbox" name="game[' . $result['gameID'] . '][tieBreak]" id="game[' . $result['gameID'] . '][tieBreak]" value="1"' . (($result['overtime']) ? ' checked="checked"' : '') . '" /></td>' . "\n";
+		echo '			<td>Tiebreaker: <input type="checkbox" name="game[' . $result['gameID'] . '][tieBreak]" id="game[' . $result['gameID'] . '][tieBreak]" value="1"' . (($result['is_tiebreaker']) ? ' checked="checked"' : '') . '" /></td>' . "\n";
 
 		echo '		</tr>' . "\n";
 		$i++;
