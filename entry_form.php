@@ -1,6 +1,6 @@
 <?php
-ini_set('display_errors',1); 
- error_reporting(E_ALL);
+//ini_set('display_errors',1); 
+// error_reporting(E_ALL);
 
 require_once('includes/application_top.php');
 require('includes/classes/team.php');
@@ -25,6 +25,12 @@ if ($_POST['action'] == 'Submit') {
 		if (!empty($_POST['game' . $result['gameID']])) {
 			$sql = "insert into " . $db_prefix . "picks (userID, gameID, pickID) values (" . $user->userID . ", " . $result['gameID'] . ", '" . $_POST['game' . $result['gameID']] . "')";
 			mysql_query($sql) or die('Error inserting pick: ' . mysql_error());
+		}
+		if (!empty($_POST['points_' . $result['gameID']])) {
+			//echo ($_POST['points_' . $result['gameID']]);
+			$sql2 = "update " . $db_prefix . "picks set total_points_picked = '" . $_POST['points_' . $result['gameID']] . "' where userID = '" . $user->userID . "' and gameID = '" . $result['gameID'] . "'";
+			//echo $sql2;
+			mysql_query($sql2) or die('Error inserting pick: ' . mysql_error());
 		}
 	}
 	header('Location: results.php?week=' . $_POST['week']);
@@ -150,9 +156,10 @@ echo $weekNav;
 				//if game is not expired, show pick
 				echo '			<input type="radio" name="game' . $result['gameID'] . '" value="' . $visitorTeam->teamID . '" id="' . $result['gameID'] . $visitorTeam->teamID . '"' . (($picks[$result['gameID']]['pickID'] == $visitorTeam->teamID) ? ' checked="checked"' : '') . ' /> <label for="' . $result['gameID'] . $visitorTeam->teamID . '">' . $visitorTeam->teamName . '</label><br />' . "\n";
 				echo '			<input type="radio" name="game' . $result['gameID'] . '" value="' . $homeTeam->teamID . '" id="' . $result['gameID'] . $homeTeam->teamID . '"' . (($picks[$result['gameID']]['pickID'] == $homeTeam->teamID) ? ' checked="checked"' : '') . ' /> <label for="' . $result['gameID'] . $homeTeam->teamID . '">' . $homeTeam->teamName . '</label><br />' . "\n";
-				echo $result;
+				//print_r($result);
 				if ($result['is_tiebreaker'] == 1) {
-					echo '			<input type="text" name="points_' . $result['gameID'] . '" id="' . $result['gameID'] . '_points" size="4"/> <label for="' . $result['gameID'] . '_points">points</label><br />' . "\n";
+					echo '			<input type="text" name="points_' . $result['gameID'] . '" id="' . $result['gameID'] . '_points" size="4" value="' . $picks[$result['gameID']]['total_points_picked'] . '"/> <label for="' . $result['gameID'] . '_points">points</label><br />' . "\n";
+					//print_r($picks);
 				}
 
 				
@@ -160,10 +167,22 @@ echo $weekNav;
 			} else {
 				//else show locked pick
 				$pickID = getPickID($result['gameID'], $user->userID);
+				$total_points = $result['total_points'];
+				$user_pick = getUserPickByGame($result['gameID'], $user->userID);
+				//echo $total_points;
+				//echo " - ";
+				$total_points_picked = ($user_pick[$result['gameID']]['total_points_picked']);
+				$points_dif = $total_points_picked - $total_points;
+
 				if (!empty($pickID)) {
 					$statusImg = '';
 					$pickTeam = new team($pickID);
 					$pickLabel = $pickTeam->teamName;
+
+					if ($total_points_picked != 0) {
+						$pickLabel = $pickTeam->teamName . " - " . $total_points_picked . " points<br><span style='color: black;'>" . $points_dif . "</span>";
+					}		
+
 				} else {
 					$statusImg = '<img src="images/cross_16x16.png" width="16" height="16" alt="" />';
 					$pickLabel = 'None Selected';
@@ -171,9 +190,9 @@ echo $weekNav;
 				if ($scoreEntered) {
 					//set status of pick (correct, incorrect)
 					if ($pickID == $result['winnerID']) {
-						$statusImg = '<img src="images/check_16x16.png" width="16" height="16" alt="" />';
+						$statusImg = '<img src="http://www.stltest.com/football/images/check_16x16.png" width="16" height="16" alt="" />';
 					} else {
-						$statusImg = '<img src="images/cross_16x16.png" width="16" height="16" alt="" />';
+						$statusImg = '<img src="http://www.stltest.com/football/images/cross_16x16.png" width="16" height="16" alt="" />';
 					}
 				}
 				echo '			' . $statusImg . ' ' . $pickLabel . "\n";

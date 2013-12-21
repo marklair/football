@@ -103,10 +103,26 @@ function getUserPicks($week, $userID) {
 	$sql .= "where s.weekNum = " . $week . " and p.userID = " . $userID . ";";
 	$qryUserPicks = mysql_query($sql);
 	while ($rstUserPicks = mysql_fetch_array($qryUserPicks)) {
-		$picks[$rstUserPicks['gameID']] = array('pickID' => $rstUserPicks['pickID'], 'points' => $rstUserPicks['points']);
+		$picks[$rstUserPicks['gameID']] = array('pickID' => $rstUserPicks['pickID'], 'points' => $rstUserPicks['points'], 'total_points_picked' => $rstUserPicks['total_points_picked']);
 	}
 	return $picks;
 }
+
+function getUserPickByGame($gameID, $userID) {
+	// gets the pick of a particular game with points
+	global $db_prefix;
+	$pick = array();
+	$sql = "select * ";
+	$sql .= "from " . $db_prefix . "picks ";
+	//$sql .= "inner join " . $db_prefix . "schedule s on p.gameID = s.gameID ";
+	$sql .= "where gameID = " . $gameID . " and userID = " . $userID . ";";
+	$qryUserPick = mysql_query($sql);
+	while ($rstUserPick = mysql_fetch_array($qryUserPick)) {
+		$pick[$rstUserPick['gameID']] = array('pickID' => $rstUserPick['pickID'], 'points' => $rstUserPick['points'], 'total_points_picked' => $rstUserPick['total_points_picked']);
+	}
+	return $pick;
+}
+
 
 function getUserScore($week, $userID) {
 	global $db_prefix, $user;
