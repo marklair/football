@@ -180,7 +180,13 @@ echo $weekNav;
 					$pickLabel = $pickTeam->teamName;
 
 					if ($total_points_picked != 0) {
-						$pickLabel = $pickTeam->teamName . " - " . $total_points_picked . " points<br><span style='color: black;'>" . $points_dif . "</span>";
+						if ($points_dif > 0) {
+							$pickLabel = $pickTeam->teamName . " - " . $total_points_picked . " points<br><span style='color: black;'>+" . $points_dif . "</span>";
+						} else {
+							$pickLabel = $pickTeam->teamName . " - " . $total_points_picked . " points<br><span style='color: red;'>" . $points_dif . "</span>";
+						}
+						
+						
 					}		
 
 				} else {
