@@ -253,7 +253,8 @@ function calculateStats() {
 		$playerPicks = array();
 		$playerWeeklyTotals = array();
 		$playerWeeklyNonMondayTotals = array();
-		$sql = "select p.userID, p.gameID, p.pickID, p.points, u.firstname, u.lastname, u.userName ";
+		$mondayNightHopefuls = array();
+		$sql = "select p.userID, p.gameID, p.pickID, p.points, p.total_points_picked, u.firstname, u.lastname, u.userName ";
 		$sql .= "from " . $db_prefix . "picks p ";
 		$sql .= "inner join " . $db_prefix . "users u on p.userID = u.userID ";
 		$sql .= "inner join " . $db_prefix . "schedule s on p.gameID = s.gameID ";
@@ -263,18 +264,25 @@ function calculateStats() {
 		while ($result = mysql_fetch_array($query)) {
 			$playerPicks[$result['userID'] . $result['gameID']] = $result['pickID'];
 			$playerWeeklyTotals[$result['userID']][week] = $week;
+			$playerWeeklyTotals[$result['userID']][pointspicked] = $result['total_points_picked'];
 			$playerTotals[$result['userID']][wins] += 0;
 			$playerTotals[$result['userID']][name] = $result['firstname'] . ' ' . $result['lastname'];
 			$playerTotals[$result['userID']][userName] = $result['userName'];
+			$playerTotals[$result['userID']][pointspicked] = $result['total_points_picked'];
+
 			if (!empty($games[$result['gameID']]['winnerID']) && $result['pickID'] == $games[$result['gameID']]['winnerID']){
 				//player has picked the winning team
+				
+				// get all non monday wins
 				if ($games[$result['gameID']]['is_tiebreaker'] != 1) {
 					$playerWeeklyTotals[$result['userID']][score] += 1;
 					$playerTotals[$result['userID']][score] += 1;
 					$playerWeeklyNonMondayTotals[$result['userID']][score] += 1;
+
 				} else {
-				$playerWeeklyTotals[$result['userID']][score] += 1;
-				$playerTotals[$result['userID']][score] += 1;
+					$playerWeeklyTotals[$result['userID']][score] += 1;
+					$playerTotals[$result['userID']][score] += 1;
+					$playerWeeklyNonMondayTotals[$result['userID']][pointspicked] = $result['total_points_picked'];
 				}
 
 			} else {
@@ -283,24 +291,117 @@ function calculateStats() {
 				$playerWeeklyNonMondayTotals[$result['userID']][score] += 0;
 			}
 		}
-		
+
+		// prints player totals
+		// print_r($playerWeeklyTotals);
+
+		//for ($week = 1; $week <= $lastCompletedWeek; $week++) {
+
+
+		//}
+
 		//get winners & highest score for current week
 		$highestScore = 0;
 		arsort($playerWeeklyNonMondayTotals);
+		//print_r($playerTotals);
+		// print_r($playerWeeklyNonMondayTotals);  // BEFORE adding the wins hash
+		
 		foreach($playerWeeklyNonMondayTotals as $playerID => $stats) {
 			if ($stats[score] > $highestScore) $highestScore = $stats[score];
 			if ($stats[score] < $highestScore) break;
-			$weekStats[$week][winners][] = $playerID;
+			$weekStats[$week][hopefuls][] = $playerID;
+			//$weekStats[$week][pointspicked][] = $stats[pointspicked];
 			$playerWeeklyNonMondayTotals[$playerID][wins] += 1;
 		}
 		$weekStats[$week][highestScore] = $highestScore;
 		$weekStats[$week][possibleScore] = getGameTotal($week);
 		$possibleScoreTotal += $weekStats[$week][possibleScore];
+		//$weekStats[$week][pointspicked][] = $stats[pointspicked];
 
 		//break tie with monday night
-		
+		//print_r($playerWeeklyNonMondayTotals); // AFTER adding wins hash
+		//print_r($games);
 	}
 }
+
+
+function getWeekWinner($week, $hopefuls) {
+	$winner = '';
+	$highClosest = 1000;
+	$highID = 0;
+	$lowClosest = 0;
+	$lowID = 0;
+	$totalPoints = 0;
+	$points = array();
+	$arraySize = sizeOf($hopefuls);
+
+	if ($arraySize == 1) {
+		$winner = $hopefuls[0];
+	} else {
+	 
+		//print_r($hopefuls);
+		$sql = "select p.total_points_picked, s.total_points, p.userID ";
+		$sql .= "from picks p ";
+		$sql .= "inner join " . $db_prefix . "schedule s on p.gameID = s.gameID ";
+		$sql .= "where s.weekNum = " . $week . " and s.is_tiebreaker = '1' ";
+		$sql .= "and (";
+
+		$i = 0;
+		$x = 0;
+		foreach ($hopefuls as $index => $hopeful) {
+			$sql .= ($i < 1) ? "p.userID = " . $hopeful : " or p.userID = " . $hopeful;
+			$i++;
+			//$winner .= $hopeful . " - week: " . $week . "<br>";
+		}
+		$sql .= ")";
+		$query = mysql_query($sql);
+		while ($result = mysql_fetch_array($query)) {
+			$totalPoints = $result[total_points];
+			if($result[total_points_picked] > $totalPoints) {
+				if($highClosest == 1000) {
+					$highClosest = $result[total_points_picked];
+					$highID = $result[userID];
+				} elseif(($totalPoints - $result[total_points_picked]) < ($totalPoints - $highClosest)) {
+					$highClosest = $result[total_points_picked];
+					$highID = $result[userID];
+				}
+			} elseif($result[total_points_picked] < $totalPoints) {
+				if($lowClosest == 0) {
+					$lowClosest = $result[total_points_picked];
+					$lowID = $result[userID];
+				} elseif(($totalPoints - $lowClosest) > ($totalPoints - $result[total_points_picked])) {
+					$lowClosest = $result[total_points_picked];
+					$lowID = $result[userID];
+				}			
+			} elseif($result[total_points_picked] == $totalPoints) {
+				$winner = $result[userID];
+			}
+
+			//print_r($result);
+			
+			//$x++;
+		}
+		if (($totalPoints - $lowClosest) < ($highClosest - $totalPoints)) {
+			$winner = $lowID;
+		} else {
+			$winner = $highID;
+		}
+	}
+
+	//$result = mysql_fetch_array($query) or die('Error getting monday hopeful scores: ' . mysql_error()); 
+	//{
+	//	$points[$result['gameID']]['total_points'] = $result['total_points'];
+	//	if ((int)$result['total_points_picked'] > (int)$result['total_points_picked']) {
+	//		$games[$result['gameID']]['total_points'] = $result['total_points'];
+	//	}
+	//	$points[$result[pointspicked]] = $result['total_points_picked'];
+	//}	
+	//die('Error getting monday hopeful scores: ' . mysql_error());
+	return $winner;
+
+}
+
+
 
 function rteSafe($strText) {
 	//returns safe code for preloading in the RTE

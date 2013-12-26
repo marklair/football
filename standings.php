@@ -9,35 +9,69 @@ $playerTotals = array();
 $possibleScoreTotal = 0;
 calculateStats();
 
+
 include('includes/header.php');
 ?>
 <h1>Standings</h1>
 <h2>Weekly Stats</h2>
 <table cellpadding="4" cellspacing="0" class="table1">
-	<tr><th align="left">Week</th><th align="left">Winner(s)</th><th>Score</th></tr>
+	<tr><th align="left">Week</th><th align="left">Winner / Monday Night Hopefuls</th><th>Score</th><th>Winner</th></tr>
 <?php
+//print_r($weekStats);
+
 if (isset($weekStats)) {
 	$i = 0;
+	$mondayNightHopefuls = array();
+	$weekwinner = array();
+	
+	//print_r($weekStats);
+
+	// loops through weeks and sets the hopefuls names in the varialbe 
 	foreach($weekStats as $week => $stats) {
-		$winners = '';
-		foreach($stats[winners] as $winner => $winnerID) {
-			$tmpUser = $login->get_user_by_id($winnerID);
+		$hopefuls = '';
+		unset($mondayNightHopefuls);
+		$mondayNightHopefuls = array();
+		
+		foreach($stats[hopefuls] as $index => $hopefulID) {
+			//print_r($stats);
+			//$mondayNightHopefuls ;
+
+			array_push($mondayNightHopefuls, $hopefulID);
+
+			$tmpUser = $login->get_user_by_id($hopefulID);
+
 			switch ($user_names_display) {
 				case 1:
-					$winners .= ((strlen($winners) > 0) ? ', ' : '') . trim($tmpUser->firstname . ' ' . $tmpUser->lastname);
+					$hopefuls .= ((strlen($hopefuls) > 0) ? ', ' : '') . trim($tmpUser->firstname . ' ' . $tmpUser->lastname);
+					//$aHopefuls => $tmpUser->userID;
 					break;
 				case 2:
-					$winners .= ((strlen($winners) > 0) ? ', ' : '') . $tmpUser->userName;
+					$hopefuls .= ((strlen($hopefuls) > 0) ? ', ' : '') . $tmpUser->userName;
+					//$aHopefuls => $tmpUser->userID;
 					break;
 				default: //3
-					$winners .= ((strlen($winners) > 0) ? ', ' : '') . '<abbrev title="' . trim($tmpUser->firstname . ' ' . $tmpUser->lastname) . '">' . $tmpUser->userName . '</abbrev>';
+					$hopefuls .= ((strlen($hopefuls) > 0) ? ', ' : '') . '<abbrev title="' . trim($tmpUser->firstname . ' ' . $tmpUser->lastname) . ' - ' . $stats[pointspicked] . '">' . $tmpUser->userName . '</abbrev>';
+					//$aHopefuls => $tmpUser->userID;
 					break;
 			}
 		}
+
+		$weekWinner = getWeekWinner($week, $mondayNightHopefuls);
+		$tmpUser = $login->get_user_by_id($weekWinner);
+		//echo ($weekWinner);	
+		//echo "<br><br>";
+		//print_r($mondayNightHopefuls);
+
+
+
+		// prints the row
 		$rowclass = (($i % 2 == 0) ? ' class="altrow"' : '');
-		echo '	<tr' . $rowclass . '><td>' . $week . '</td><td>' . $winners . '</td><td align="center">' . $stats[highestScore] . '/' . $stats[possibleScore] . '</td></tr>';
+		echo '	<tr' . $rowclass . '><td>' . $week . '</td><td>' . $hopefuls . '</td><td align="center">' . $stats[highestScore] . '/' . $stats[possibleScore] . '</td><td>' . $tmpUser->userName . '</td></tr>';
 		$i++;
 	}
+	//print_r($mondayNightHopefuls);	
+
+
 } else {
 	echo '	<tr><td colspan="3">No weeks have been completed yet.</td></tr>' . "\n";
 }
