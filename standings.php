@@ -15,7 +15,7 @@ include('includes/header.php');
 <h1>Standings</h1>
 <h2>Weekly Stats</h2>
 <table cellpadding="4" cellspacing="0" class="table1">
-	<tr><th align="left">Week</th><th align="left">Winner / Monday Night Hopefuls</th><th>Score</th><th>Winner</th></tr>
+	<tr><th align="left">Week</th><th align="left">Winner / Monday Night Hopefuls</th><th>Score</th><th>Winner</th><th>Points</th></tr>
 <?php
 //print_r($weekStats);
 
@@ -23,6 +23,7 @@ if (isset($weekStats)) {
 	$i = 0;
 	$mondayNightHopefuls = array();
 	$weekwinner = array();
+	$weekWinningPoints = 0;
 	
 	//print_r($weekStats);
 
@@ -57,7 +58,10 @@ if (isset($weekStats)) {
 		}
 
 		$weekWinner = getWeekWinner($week, $mondayNightHopefuls);
+		$weekWinningPoints = getWeekWinner($week, $mondayNightHopefuls, points);
 		$tmpUser = $login->get_user_by_id($weekWinner);
+
+
 		//echo ($weekWinner);	
 		//echo "<br><br>";
 		//print_r($mondayNightHopefuls);
@@ -66,7 +70,7 @@ if (isset($weekStats)) {
 
 		// prints the row
 		$rowclass = (($i % 2 == 0) ? ' class="altrow"' : '');
-		echo '	<tr' . $rowclass . '><td>' . $week . '</td><td>' . $hopefuls . '</td><td align="center">' . $stats[highestScore] . '/' . $stats[possibleScore] . '</td><td>' . $tmpUser->userName . '</td></tr>';
+		echo '	<tr' . $rowclass . '><td>' . $week . '</td><td>' . $hopefuls . '</td><td align="center">' . $stats[highestScore] . '/' . $stats[possibleScore] . '</td><td>' . $tmpUser->userName . '</td><td>' . ($weekWinningPoints == 0) ? "N/A":$weekWinningPoints .'</td></tr>';
 		$i++;
 	}
 	//print_r($mondayNightHopefuls);	

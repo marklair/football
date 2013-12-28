@@ -325,8 +325,9 @@ function calculateStats() {
 }
 
 
-function getWeekWinner($week, $hopefuls) {
+function getWeekWinner($week, $hopefuls, $returnValue='userID') {
 	$winner = '';
+	$winningPoints = 0;
 	$highClosest = 1000;
 	$highID = 0;
 	$lowClosest = 0;
@@ -361,7 +362,7 @@ function getWeekWinner($week, $hopefuls) {
 				if($highClosest == 1000) {
 					$highClosest = $result[total_points_picked];
 					$highID = $result[userID];
-				} elseif(($totalPoints - $result[total_points_picked]) < ($totalPoints - $highClosest)) {
+				} elseif(($result[total_points_picked] - $totalPoints) < ($highClosest - $totalPoints)) {
 					$highClosest = $result[total_points_picked];
 					$highID = $result[userID];
 				}
@@ -383,9 +384,12 @@ function getWeekWinner($week, $hopefuls) {
 		}
 		if (($totalPoints - $lowClosest) < ($highClosest - $totalPoints)) {
 			$winner = $lowID;
+			$winningPoints = $lowClosest;
 		} else {
 			$winner = $highID;
+			$winningPoints = $highClosest;
 		}
+
 	}
 
 	//$result = mysql_fetch_array($query) or die('Error getting monday hopeful scores: ' . mysql_error()); 
@@ -397,7 +401,17 @@ function getWeekWinner($week, $hopefuls) {
 	//	$points[$result[pointspicked]] = $result['total_points_picked'];
 	//}	
 	//die('Error getting monday hopeful scores: ' . mysql_error());
-	return $winner;
+	
+	
+
+	if($returnValue == 'userID') {
+		return $winner;
+	} elseif ($returnValue == 'points') {
+		return $winningPoints;
+	} else {
+		return 'Error: invalid argument for return value!';
+	}
+
 
 }
 

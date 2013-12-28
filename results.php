@@ -39,6 +39,8 @@ while ($result = mysql_fetch_array($query)) {
 	$games[$result['gameID']]['gameID'] = $result['gameID'];
 	$games[$result['gameID']]['homeID'] = $result['homeID'];
 	$games[$result['gameID']]['visitorID'] = $result['visitorID'];
+	$games[$result['gameID']]['homeID'] = $result['is_tiebreaker'];
+	$games[$result['gameID']]['homeID'] = $result['total_points'];
 	if (strlen($result['homeScore']) > 0 && strlen($result['visitorScore']) > 0) {
 		if ((int)$result['homeScore'] > (int)$result['visitorScore']) {
 			$games[$result['gameID']]['winnerID'] = $result['homeID'];
@@ -55,7 +57,7 @@ while ($result = mysql_fetch_array($query)) {
 //get array of player picks
 $playerPicks = array();
 $playerTotals = array();
-$sql = "select p.userID, p.gameID, p.pickID, p.points ";
+$sql = "select p.userID, p.gameID, p.pickID, p.points, p.total_points_picked, s.is_tiebreaker ";
 $sql .= "from " . $db_prefix . "picks p ";
 $sql .= "inner join " . $db_prefix . "users u on p.userID = u.userID ";
 $sql .= "inner join " . $db_prefix . "schedule s on p.gameID = s.gameID ";
@@ -65,6 +67,7 @@ $query = mysql_query($sql);
 $i = 0;
 while ($result = mysql_fetch_array($query)) {
 	$playerPicks[$result['userID']][$result['gameID']] = $result['pickID'];
+	$playerPicks[$result['userID']][$result['total_points_picked']] = $result['total_points_picked'];
 	if (!empty($games[$result['gameID']]['winnerID']) && $result['pickID'] == $games[$result['gameID']]['winnerID']) {
 		//player has picked the winning team
 		$playerTotals[$result['userID']] += 1;
