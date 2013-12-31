@@ -70,7 +70,7 @@ if (isset($weekStats)) {
 
 		// prints the row
 		$rowclass = (($i % 2 == 0) ? ' class="altrow"' : '');
-		echo '	<tr' . $rowclass . '><td>' . $week . '</td><td>' . $hopefuls . '</td><td align="center">' . $stats[highestScore] . '/' . $stats[possibleScore] . '</td><td>' . $tmpUser->userName . '</td><td>' . ($weekWinningPoints == 0) ? "N/A":$weekWinningPoints .'</td></tr>';
+		echo '	<tr' . $rowclass . '><td>' . $week . '</td><td>' . $hopefuls . '</td><td align="center">' . $stats[highestScore] . '/' . $stats[possibleScore] . '</td><td>' . $tmpUser->userName . '</td><td>' . ($weekWinningPoints == 0 ? "N/A":$weekWinningPoints) .'</td></tr>';
 		$i++;
 	}
 	//print_r($mondayNightHopefuls);	
