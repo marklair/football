@@ -8,6 +8,9 @@ if (!$isAdmin) {
 
 $action = $_GET['action'];
 switch ($action) {
+	case 'add_action':
+		
+
 	case 'edit_action':
 		$gameID = $_POST['gameID'];
 		$week = $_POST['weekNum'];
@@ -90,6 +93,7 @@ if ($action == 'add' || $action == 'edit') {
 <!-- timePicker found at http://labs.perifer.se/timedatepicker/ -->
 <script type="text/javascript" src="js/jquery.timePicker.js"></script>
 <link href="css/timePicker.css" rel="stylesheet" type="text/css" media="screen" />
+
 
 <h1><?php echo ucfirst($action); ?> Game</h1>
 <div class="warning">Warning: Changes made to future games will erase picks entered for games affected.</div>
@@ -175,16 +179,24 @@ while($result = mysql_fetch_array($query)) {
 	}
 ?>
 <h1>Edit Schedule</h1>
+
+
 <p>Select a Week: 
-<select name="week" onchange="javascript:location.href='<?php echo $_SERVER['PHP_SELF']; ?>?week=' + this.value;">
-<?php
-	$sql = "select distinct weekNum from " . $db_prefix . "schedule order by weekNum;";
-	$query = mysql_query($sql);
-	while ($result = mysql_fetch_array($query)) {
-		echo '	<option value="' . $result['weekNum'] . '"' . ((!empty($week) && $week == $result['weekNum']) ? ' selected="selected"' : '') . '>' . $result['weekNum'] . '</option>' . "\n";
-	}
-?>
-</select></p>
+	<select name="week" onchange="javascript:location.href='<?php echo $_SERVER['PHP_SELF']; ?>?week=' + this.value;">
+	<?php
+		$sql = "select distinct weekNum from " . $db_prefix . "schedule order by weekNum;";
+		$query = mysql_query($sql);
+		while ($result = mysql_fetch_array($query)) {
+			echo '	<option value="' . $result['weekNum'] . '"' . ((!empty($week) && $week == $result['weekNum']) ? ' selected="selected"' : '') . '>' . $result['weekNum'] . '</option>' . "\n";
+		}
+	?>
+	</select>
+
+	<?php
+	echo '<a href="' . $_SERVER['PHP_SELF'] . '?action=add" class="greenbutton">Add Game</a>';
+	?>
+
+</p>
 <!--p><a href="<?php echo $_SERVER['PHP_SELF']; ?>?action=add&week=<?php echo $week; ?>"><img src="images/icons/add_16x16.png" width="16" height="16" alt="Add Game" /></a>&nbsp;<a href="<?php echo $_SERVER['PHP_SELF']; ?>?action=add">Add Game</a></p-->
 <?php
 	$sql = "select s.*, ht.city, ht.team, ht.displayName, vt.city, vt.team, vt.displayName from " . $db_prefix . "schedule s ";
