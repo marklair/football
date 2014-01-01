@@ -9,7 +9,29 @@ if (!$isAdmin) {
 $action = $_GET['action'];
 switch ($action) {
 	case 'add_action':
+		$gameID = $_POST['gameID'];
+		$week = $_POST['weekNum'];
+		$gameTimeEastern = date('Y-m-d G:i:00', strtotime($_POST['gameTimeEastern'] . ' ' . $_POST['gameTimeEastern2']));
+		$homeID = $_POST['homeID'];
+		$visitorID = $_POST['visitorID'];
+		$is_PostSeason = $_POST['postSeason'];
+		$is_tiebreaker = $_POST['tieBreaker'];
 		
+		//make sure all required fields are filled in and valid
+		if (empty($homeID) || empty($visitorID)) {
+			die('error: missing home or visiting team.');
+		}
+		
+		
+		//add game and redirect to same week
+		$sql = "insert into " . $db_prefix . "schedule (weekNum, gameTimeEastern, homeID, visitorID, is_tiebreaker, is_postseason) ";
+		$sql .= "values ('" . $week . "', '" . $gameTimeEastern . "', '" . $homeID . "', '" . $visitorID . "', '" . $is_tiebreaker . "', '" . $is_PostSeason . "')";
+
+		mysql_query($sql) or die(mysql_error() . '. Query:' . $sql);
+		
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?week=' . $week);
+		break;	
+				
 
 	case 'edit_action':
 		$gameID = $_POST['gameID'];
@@ -17,6 +39,8 @@ switch ($action) {
 		$gameTimeEastern = date('Y-m-d G:i:00', strtotime($_POST['gameTimeEastern'] . ' ' . $_POST['gameTimeEastern2']));
 		$homeID = $_POST['homeID'];
 		$visitorID = $_POST['visitorID'];
+		$is_PostSeason = $_POST['postSeason'];
+		$is_tiebreaker = $_POST['tieBreaker'];
 		
 		//make sure all required fields are filled in and valid
 		if (empty($homeID) || empty($visitorID)) {
@@ -42,12 +66,14 @@ switch ($action) {
 		
 		//update game and redirect to same week
 		$sql = "update " . $db_prefix . "schedule ";
-		$sql .= "set weekNum = " . $week . ", gameTimeEastern = '" . $gameTimeEastern . "', homeID = '" . $homeID . "', visitorID = '" . $visitorID . "' ";
+		$sql .= "set weekNum = " . $week . ", gameTimeEastern = '" . $gameTimeEastern . "', homeID = '" . $homeID . "', is_tiebreaker = '" . $is_tiebreaker . "', is_postseason = '" . $is_PostSeason . "', visitorID = '" . $visitorID . "' ";
 		$sql .= "where gameID = " . $gameID;
 		mysql_query($sql) or die(mysql_error() . '. Query:' . $sql);
 		
 		header('Location: ' . $_SERVER['PHP_SELF'] . '?week=' . $week);
 		break;
+		
+		
 	case 'delete':
 		$gameID = $_GET['id'];
 		$week = $_GET['week'];
@@ -82,6 +108,8 @@ if ($action == 'add' || $action == 'edit') {
 			$gameTimeEastern = $result['gameTimeEastern'];
 			$homeID = $result['homeID'];
 			$visitorID = $result['visitorID'];
+			$is_PostSeason = $result['is_postseason'];
+			$is_tiebreaker = $result['is_tiebreaker'];
 		} else {
 			header('Location: ' . $_SERVER['PHP_SELF']);
 		}
@@ -162,6 +190,32 @@ while($result = mysql_fetch_array($query)) {
 		</td>
 	</tr>
 	<tr>
+		<td>Check if tiebreaker: </td>
+		<td>
+		<?php
+			if($is_tiebreaker){
+				echo '<input type="checkbox" name="tieBreaker" value="1" checked="checked">';
+			} else {
+				echo '<input type="checkbox" name="tieBreaker" value="1">';			
+			}
+		?>
+			
+		</td>
+	</tr>
+	<tr>
+		<td>Check if post season: </td>
+		<td>
+		<?php
+			if($is_PostSeason){
+				echo '<input type="checkbox" name="postSeason" value="1" checked="checked">';
+			} else {
+				echo '<input type="checkbox" name="postSeason" value="1">';			
+			}
+		?>
+			
+		</td>
+	</tr>
+	<tr>
 		<td>&nbsp;</td>
 		<td>
 			<input type="submit" name="submit" value="<?php echo ucfirst($action); ?>" />&nbsp;
@@ -187,6 +241,7 @@ while($result = mysql_fetch_array($query)) {
 		$sql = "select distinct weekNum from " . $db_prefix . "schedule order by weekNum;";
 		$query = mysql_query($sql);
 		while ($result = mysql_fetch_array($query)) {
+
 			echo '	<option value="' . $result['weekNum'] . '"' . ((!empty($week) && $week == $result['weekNum']) ? ' selected="selected"' : '') . '>' . $result['weekNum'] . '</option>' . "\n";
 		}
 	?>
@@ -229,7 +284,10 @@ while($result = mysql_fetch_array($query)) {
 				echo '			<td>' . date('D n/j g:i a', strtotime($result['gameTimeEastern'])) . ' ET</td>' . "\n";
 			}
 			echo '			<td><a href="' . $_SERVER['PHP_SELF'] . '?action=edit&id=' . $result['gameID'] . '"><img src="images/icons/edit_16x16.png" width="16" height="16" alt="edit" /></a>&nbsp;<a href="javascript:confirmDelete(\'' . $result['gameID'] . '\');"><img src="images/icons/delete_16x16.png" width="16" height="16" alt="delete" /></a></td>' . "\n";
+
+			//echo '			<td></td>'
 			echo '		</tr>' . "\n";
+			
 			$prevWeek = $result['weekNum'];
 			$i++;
 		}
