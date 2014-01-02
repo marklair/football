@@ -343,3 +343,14 @@ div.fieldLoaded {
 	position:relative;
 	top:1px;
 }
+
+#weeklyStandings {
+	float: left;
+	margin-right: 10px;
+}
+#playoffStandings {
+	margin-left: 10px;
+}
+#userStats {
+	clear: both;
+}
